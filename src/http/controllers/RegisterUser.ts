@@ -2,8 +2,7 @@ import { FastifyReply, FastifyRequest } from "fastify";
 import { z } from "zod";
 import { RegisterUserUseCase } from "../../UseCases/RegisterUser";
 import { PrismaUserRepository } from "../../repository/implementations/PrismaUserRepository";
-import { EmailAlreadyInUse } from "../../UseCases/Errors/EmailAlreadyInUse";
-
+import { UserAlredyExistsError } from "../../UseCases/Errors/UserAlreadyExistsError";
 
 export async function RegisterUser(request: FastifyRequest, reply: FastifyReply) {
 
@@ -18,10 +17,10 @@ export async function RegisterUser(request: FastifyRequest, reply: FastifyReply)
 
     try {
         const registerUserUseCase = new RegisterUserUseCase(new PrismaUserRepository())
-        registerUserUseCase.Execute(user)
-    } catch (err) {
-        if (err instanceof EmailAlreadyInUse) {
-            return reply.status(400).send()
+        await registerUserUseCase.Execute(user)
+    } catch (error) {
+        if (error instanceof UserAlredyExistsError) {
+            return reply.status(400).send({ message: error.message })
         }
     }
 

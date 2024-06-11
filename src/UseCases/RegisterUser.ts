@@ -1,6 +1,7 @@
 import { MailProvider } from "../mailProvider/mailProvider";
+import { UserAlredyExistsError } from "./Errors/UserAlreadyExistsError";
 import { IUserRepository, User } from "../repository/IUserRepository";
-import { EmailAlreadyInUse } from "./Errors/EmailAlreadyInUse";
+import { CreateEmail } from "@/utils/CreateEmail";
 
 export class RegisterUserUseCase {
 
@@ -9,18 +10,17 @@ export class RegisterUserUseCase {
     async Execute(user: User) {
 
         const validateEmail = await this.repository.FindUserByEmail(user.email)
-        console.log(validateEmail)
         if (validateEmail !== null) {
-            throw new EmailAlreadyInUse();
+            throw new UserAlredyExistsError();
         }
 
-        // await this.repository.RegisterUser(user)
-
+        await this.repository.RegisterUser(user)
 
         const mail = new MailProvider();
 
-        mail.sendMail(user.email, 'teste', '<h1>Teste</h1>')
-        return
+        const message = CreateEmail(user.name)
+
+        mail.sendMail(user.email, 'Test lead capture api', message)
     }
 
 }
